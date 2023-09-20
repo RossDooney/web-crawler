@@ -42,7 +42,7 @@ test('getURLsFromHTLM', () =>{
     `
     const inputURL = 'blog.boot.dev'
     const actual = getURLsFromHTLM(inputHTML, inputURL)
-    const expected = ["https://blog.boot.dev"]
+    const expected = ["https://blog.boot.dev/"]
     expect(actual).toEqual(expected)
 }) 
 
@@ -50,7 +50,10 @@ test('getURLsFromHTLM relative', () =>{
     const inputHTML = `
     <html>
         <body>
-            <a href="/path">
+            <a href="https://blog.boot.dev/path1">
+                Boot.dev.blog
+            </a>
+            <a href="/path2">
                 Boot.dev.blog
             </a>
         </body>
@@ -58,6 +61,22 @@ test('getURLsFromHTLM relative', () =>{
     `
     const inputURL = 'https://blog.boot.dev'
     const actual = getURLsFromHTLM(inputHTML, inputURL)
-    const expected = ["https://blog.boot.dev/path"]
+    const expected = ["https://blog.boot.dev/path1", "https://blog.boot.dev/path2"]
+    expect(actual).toEqual(expected)
+}) 
+
+test('getURLsFromHTLM Invalid', () =>{
+    const inputHTML = `
+    <html>
+        <body>
+            <a href="invalid">
+                Boot.dev.blog
+            </a>
+        </body>
+    </html>    
+    `
+    const inputURL = 'blog.boot.dev'
+    const actual = getURLsFromHTLM(inputHTML, inputURL)
+    const expected = []
     expect(actual).toEqual(expected)
 }) 
