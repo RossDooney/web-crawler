@@ -45,3 +45,19 @@ test('getURLsFromHTLM', () =>{
     const expected = ["https://blog.boot.dev"]
     expect(actual).toEqual(expected)
 }) 
+
+test('getURLsFromHTLM relative', () =>{
+    const inputHTML = `
+    <html>
+        <body>
+            <a href="/path">
+                Boot.dev.blog
+            </a>
+        </body>
+    </html>    
+    `
+    const inputURL = 'https://blog.boot.dev'
+    const actual = getURLsFromHTLM(inputHTML, inputURL)
+    const expected = ["https://blog.boot.dev/path"]
+    expect(actual).toEqual(expected)
+}) 
