@@ -1,21 +1,32 @@
 const { JSDOM } = require('jsdom')
 
+async function crawlPage(currentURL){
+    console.log(`Crawling ${currentURL}`)
+
+    const resp = await fetch(currentURL)
+
+    console.log(await resp.text())
+
+}
+
+
 function getURLsFromHTLM(htmlBody, baseURL){
     const urls = []
     const dom = new JSDOM(htmlBody)
     const linkEles = dom.window.document.querySelectorAll('a')
-    for(const linkEle of linkEles){        
+    for(let linkEle of linkEles){ 
+  
         if (linkEle.href.slice(0,1) === "/"){
             try {
                 const urlObject = new URL(`${baseURL}${linkEle}`)
-                urls.push(urlObject.href) 
+                urls.push(removeTrailingSlash(urlObject.href) )
             } catch (error) {
                 console.log("error with url give: " + error.message)   
             }
         }else{    
             try {
                 const urlObject = new URL(`${baseURL}${linkEle}`)
-                urls.push(linkEle.href)
+                urls.push(removeTrailingSlash(linkEle.href))
             } catch (error) {
                 console.log("error with url give: " + error.message)   
             }             
@@ -42,5 +53,6 @@ function removeTrailingSlash(url){
 
 module.exports = {
     normalizeURL,
-    getURLsFromHTLM
+    getURLsFromHTLM,
+    crawlPage
 }

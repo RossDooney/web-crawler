@@ -42,7 +42,7 @@ test('getURLsFromHTLM', () =>{
     `
     const inputURL = 'blog.boot.dev'
     const actual = getURLsFromHTLM(inputHTML, inputURL)
-    const expected = ["https://blog.boot.dev/"]
+    const expected = ["https://blog.boot.dev"]
     expect(actual).toEqual(expected)
 }) 
 
