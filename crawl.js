@@ -1,76 +1,81 @@
 const { JSDOM } = require('jsdom')
 
-async function crawlPage(currentURL){
-    console.log(`Crawling ${currentURL}`)
-    try {
-        const resp = await fetch(currentURL)       
+async function crawlPage(baseURL, currentURL, pages){
 
-        if (resp.status > 399){
-            console.log(`error in fetch with status code: ${resp.status} on page: ${currentURL}`)
-            return
-        }
-        
-        const contentType = resp.headers.get("content-type")
-        if (!contentType.includes("text/html")){
-            console.log(`non html reponse on page ${currentURL}, content type: ${contentType}`)
-            return
-
-        }
-
-        console.log(await resp.text())
-    } catch (error) {
-        console.log(`fetch error: ${error.message}, on page: ${currentURL} `)
-    }
-
-
-
-
-}
-
-
-function getURLsFromHTLM(htmlBody, baseURL){
-    const urls = []
-    const dom = new JSDOM(htmlBody)
-    const linkEles = dom.window.document.querySelectorAll('a')
-    for(let linkEle of linkEles){ 
+  const currentUrlObj = new URL(currentURL)
+  const baseUrlObj = new URL(baseURL)
+  if (currentUrlObj.hostname !== baseUrlObj.hostname){
+    return pages
+  }
   
-        if (linkEle.href.slice(0,1) === "/"){
-            try {
-                const urlObject = new URL(`${baseURL}${linkEle}`)
-                urls.push(removeTrailingSlash(urlObject.href) )
-            } catch (error) {
-                console.log("error with url give: " + error.message)   
-            }
-        }else{    
-            try {
-                const urlObject = new URL(`${baseURL}${linkEle}`)
-                urls.push(removeTrailingSlash(linkEle.href))
-            } catch (error) {
-                console.log("error with url give: " + error.message)   
-            }             
-           
-        }
+  const normalizedURL = normalizeURL(currentURL)
+
+  if (pages[normalizedURL] > 0){
+    pages[normalizedURL]++
+    return pages
+  }
+
+  pages[normalizedURL] = 1
+
+  console.log(`crawling ${currentURL}`)
+  let htmlBody = ''
+  try {
+    const resp = await fetch(currentURL)
+    if (resp.status > 399){
+      console.log(`Got HTTP error, status code: ${resp.status}`)
+      return pages
     }
-    return urls
-
-}
-
-function normalizeURL(urlString){
-    const urlObj = new URL(urlString)
-    const hostPath = `${urlObj.hostname}${urlObj.pathname}`    
-    return removeTrailingSlash(hostPath)
-}
-
-function removeTrailingSlash(url){
-    if(url.slice(-1) === "/"){
-        return url.slice(0,-1)
+    const contentType = resp.headers.get('content-type')
+    if (!contentType.includes('text/html')){
+      console.log(`Got non-html response: ${contentType}`)
+      return pages
     }
-    return url
+    htmlBody = await resp.text()
+  } catch (err){
+    console.log(err.message)
+  }
+
+  const nextURLs = getURLsFromHTML(htmlBody, baseURL)
+  for (const nextURL of nextURLs){
+    pages = await crawlPage(baseURL, nextURL, pages)
+  }
+
+  return pages
 }
 
+function getURLsFromHTML(htmlBody, baseURL){
+  const urls = []
+  const dom = new JSDOM(htmlBody)
+  const aElements = dom.window.document.querySelectorAll('a')
+  for (const aElement of aElements){
+    if (aElement.href.slice(0,1) === '/'){
+      try {
+        urls.push(new URL(aElement.href, baseURL).href)
+      } catch (err){
+        console.log(`${err.message}: ${aElement.href}`)
+      }
+    } else {
+      try {
+        urls.push(new URL(aElement.href).href)
+      } catch (err){
+        console.log(`${err.message}: ${aElement.href}`)
+      }
+    }
+  }
+  return urls
+}
+
+function normalizeURL(url){
+  const urlObj = new URL(url)
+  let fullPath = `${urlObj.host}${urlObj.pathname}`
+  if (fullPath.length > 0 && fullPath.slice(-1) === '/'){
+    fullPath = fullPath.slice(0, -1)
+  }
+  return fullPath
+}
 
 module.exports = {
-    normalizeURL,
-    getURLsFromHTLM,
-    crawlPage
+  crawlPage,
+  normalizeURL,
+  getURLsFromHTML
 }
