@@ -1,4 +1,4 @@
-const {normalizeURL, getURLsFromHTLM} = require('./crawl.js')
+const {normalizeURL, getURLsFromHTML} = require('./crawl.js')
 
 const {test, expect } = require('@jest/globals')
 
@@ -30,7 +30,7 @@ test('normalizeURL strip http', () =>{
     expect(actual).toEqual(expected)
 }) 
 
-test('getURLsFromHTLM', () =>{
+test('getURLsFromHTML', () =>{
     const inputHTML = `
     <html>
         <body>
@@ -41,12 +41,12 @@ test('getURLsFromHTLM', () =>{
     </html>    
     `
     const inputURL = 'blog.boot.dev'
-    const actual = getURLsFromHTLM(inputHTML, inputURL)
-    const expected = ["https://blog.boot.dev"]
+    const actual = getURLsFromHTML(inputHTML, inputURL)
+    const expected = ["https://blog.boot.dev/"]
     expect(actual).toEqual(expected)
 }) 
 
-test('getURLsFromHTLM relative', () =>{
+test('getURLsFromHTML relative', () =>{
     const inputHTML = `
     <html>
         <body>
@@ -60,12 +60,12 @@ test('getURLsFromHTLM relative', () =>{
     </html>    
     `
     const inputURL = 'https://blog.boot.dev'
-    const actual = getURLsFromHTLM(inputHTML, inputURL)
+    const actual = getURLsFromHTML(inputHTML, inputURL)
     const expected = ["https://blog.boot.dev/path1", "https://blog.boot.dev/path2"]
     expect(actual).toEqual(expected)
 }) 
 
-test('getURLsFromHTLM Invalid', () =>{
+test('getURLsFromHTML Invalid', () =>{
     const inputHTML = `
     <html>
         <body>
@@ -76,7 +76,7 @@ test('getURLsFromHTLM Invalid', () =>{
     </html>    
     `
     const inputURL = 'blog.boot.dev'
-    const actual = getURLsFromHTLM(inputHTML, inputURL)
+    const actual = getURLsFromHTML(inputHTML, inputURL)
     const expected = []
     expect(actual).toEqual(expected)
 }) 
